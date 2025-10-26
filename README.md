@@ -9,19 +9,18 @@
 
 ```json
 {
-  "name": "xinzhi-weather-mcp",
-  "version": "1.0.0",
-  "description": "心知天气API的MCP服务",
-  "entrypoint": "server.py",
-  "environment": {
-    "python": "3.9"
-  },
-  "dependencies": [
-    "mcp>=1.0.0",
-    "pydantic>=2.0.0",
-    "aiohttp>=3.9.0",
-    "requests>=2.31.0"
-  ]
+  "mcpServers": {
+    "xinzhi-weather": {
+      "command": "python",
+      "args": ["server.py"],
+      "env": {
+        "PYTHONPATH": ".",
+        "XZ_PUBLIC_KEY": "您的心知天气公钥",
+        "XZ_PRIVATE_KEY": "您的心知天气私钥", 
+        "XZ_DEFAULT_LOCATION": "yulin"
+      }
+    }
+  }
 }
 ```
 
