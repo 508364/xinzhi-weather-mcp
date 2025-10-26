@@ -4,24 +4,10 @@
       "command": "python",
       "args": ["server.py"],
       "env": {
-        "PYTHONPATH": "."
-      },
-      "config": {
-        "public_key": {
-          "type": "string",
-          "description": "心知天气公钥",
-          "required": true
-        },
-        "private_key": {
-          "type": "string", 
-          "description": "心知天气私钥",
-          "required": true
-        },
-        "default_location": {
-          "type": "string",
-          "description": "默认查询城市",
-          "default": "yulin"
-        }
+        "PYTHONPATH": ".",
+        "XZ_PUBLIC_KEY": "您的公钥",
+        "XZ_PRIVATE_KEY": "您的私钥",
+        "XZ_DEFAULT_LOCATION": "yulin"
       }
     }
   }
