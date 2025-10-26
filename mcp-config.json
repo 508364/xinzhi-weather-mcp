@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "xinzhi-weather": {
+      "command": "python",
+      "args": ["server.py"],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}
