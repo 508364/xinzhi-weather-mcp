@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-心知天气 MCP 服务器 - 魔搭社区版本
+心知天气 MCP 服务器 - 修正版本
 使用标准 MCP 协议提供天气查询服务
 """
 
@@ -15,18 +15,9 @@ from mcp import Server, types
 import mcp
 import asyncio
 import aiohttp
-from typing import Optional
 
 # 创建MCP服务器实例
 app = Server("xinzhi-weather")
-
-class WeatherConfig:
-    """配置类"""
-    def __init__(self):
-        self.default_location = os.getenv("DEFAULT_LOCATION", "yulin")
-        self.timeout = int(os.getenv("TIMEOUT", "10"))
-
-config = WeatherConfig()
 
 def generate_signature(params: dict, private_key: str) -> tuple:
     """生成心知天气API签名"""
@@ -62,7 +53,7 @@ async def fetch_weather_data(location: str, public_key: str, private_key: str) -
         
         url = "https://api.seniverse.com/v3/weather/now.json"
         
-        timeout = aiohttp.ClientTimeout(total=config.timeout)
+        timeout = aiohttp.ClientTimeout(total=10)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url, params=request_params) as response:
                 if response.status == 200:
@@ -88,18 +79,10 @@ async def handle_list_tools() -> list[types.Tool]:
                     "location": {
                         "type": "string",
                         "description": "城市名称，如：beijing、shanghai、yulin",
-                        "default": config.default_location
-                    },
-                    "public_key": {
-                        "type": "string", 
-                        "description": "心知天气公钥",
-                    },
-                    "private_key": {
-                        "type": "string",
-                        "description": "心知天气私钥",
+                        "default": "yulin"
                     }
                 },
-                "required": ["public_key", "private_key"]
+                "required": []
             }
         )
     ]
@@ -108,15 +91,18 @@ async def handle_list_tools() -> list[types.Tool]:
 async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent]:
     """处理工具调用"""
     if name == "get_weather":
-        location = arguments.get("location", config.default_location)
-        public_key = arguments.get("public_key", "")
-        private_key = arguments.get("private_key", "")
+        # 从环境变量获取配置（通过MCP客户端设置）
+        public_key = os.getenv("XZ_PUBLIC_KEY")
+        private_key = os.getenv("XZ_PRIVATE_KEY")
+        default_location = os.getenv("XZ_DEFAULT_LOCATION", "yulin")
         
         if not public_key or not private_key:
             return [types.TextContent(
                 type="text",
-                text="错误：请提供心知天气的公钥和私钥"
+                text="错误：请先配置心知天气的API密钥。请在MCP客户端中设置XZ_PUBLIC_KEY和XZ_PRIVATE_KEY环境变量。"
             )]
+        
+        location = arguments.get("location", default_location)
         
         result = await fetch_weather_data(location, public_key, private_key)
         
@@ -132,14 +118,7 @@ async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent
             weather_now = weather_info["now"]
             last_update = weather_info["last_update"]
             
-            response_text = f"""{location_name} 实时天气信息：
-
-地点：{location_name}
-温度：{weather_now['temperature']}°C
-天气：{weather_now['text']}
-更新：{last_update}
-
-数据来源：心知天气 API"""
+            response_text = f"{location_name} 实时天气信息：\n\n地点：{location_name}\n温度：{weather_now['temperature']}°C\n天气：{weather_now['text']}\n更新时间：{last_update}\n\n数据来源：心知天气 API"
             
             return [types.TextContent(type="text", text=response_text)]
         else:
